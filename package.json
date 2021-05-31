@@ -1,7 +1,7 @@
 {
-  "name": "com.vendor.gif-capture-recorder",
+  "name": "com.vendor.gif-replay-recorder",
   "version": "1.0.0",
-  "displayName": "Gif Capture Recorder",
+  "displayName": "Gif Replay Recorder",
   "description": "Record the unity game in GIFs and allow replay or share it",
   "unity": "2019.4",
   "keywords": [
