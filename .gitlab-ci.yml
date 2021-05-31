@@ -1,0 +1,88 @@
+image: node:latest
+
+stages:
+  - deploy
+
+.auth: &auth
+  before_script:
+    - echo '//npm.office.xoia.es/:_authToken="'$NPM_TOKEN'"' > ".npmrc"
+
+.publish-script: &publish-script
+  - echo "Uploading Package to Xoia NPM Server"
+  - echo '//npm.office.xoia.es/:_authToken="'$NPM_TOKEN'"' > ".npmrc"
+  - '[[ -d Samples ]] && mv Samples Samples~' #Replace Samples for Samples~ to optional import in Unity
+  - '[[ -f Samples.meta ]] && rm Samples.meta'
+  - npm publish --registry $NPM_SERVER
+  - echo "Package Published!"
+
+.unpublish-script: &unpublish-script
+  - echo "Unpublishing Package from Xoia NPM Server"
+  - npm unpublish --force --registry $NPM_SERVER 
+  - echo "Package Unpublished (only the actual version of package.json)!"
+
+.replace-dev: &replace-dev
+    - NAME=$(node -p "require('./package.json').name")
+    - NAME2=$NAME"-dev"
+    - sed -i "s/$NAME/$NAME2/g" package.json
+    - VER=$(node -p "require('./package.json').version")
+    - VER2=$VER"-dev"
+    - sed -i "0,/$VER/s//$VER2/" package.json
+    - 'sed -i "0,/\"name\": \"Xoia\"/s//\"name\": \"Xoia-Dev\"/" package.json'
+
+publish:
+  stage: deploy
+  tags:
+    - shared-runner
+  <<: *auth
+  script: 
+    - *publish-script
+  only:
+    - master
+
+publish-overwrite:
+  when: manual
+  stage: deploy
+  tags:
+    - shared-runner
+  <<: *auth
+  script:
+    - echo "Uploading Package to Xoia NPM Server (unpublishing actual version previusly)"
+    - *unpublish-script # To overwrite in case the are the same version
+    - *publish-script
+  only:
+    - master
+
+unpublish:
+  when: manual
+  stage: deploy
+  tags:
+    - shared-runner
+  <<: *auth
+  script:
+    - *unpublish-script
+  only:
+    - master
+
+publish-dev:
+  when: manual
+  stage: deploy
+  tags:
+    - shared-runner
+  <<: *auth
+  script:
+    - *replace-dev
+    - *publish-script
+  only:
+    - /^dev.*$/
+
+unpublish-dev:
+  when: manual
+  stage: deploy
+  tags:
+    - shared-runner
+  <<: *auth
+  script:
+    - *replace-dev
+    - *unpublish-script
+  only:
+    - /^dev.*$/

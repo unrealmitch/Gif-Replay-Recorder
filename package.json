@@ -1,0 +1,38 @@
+{
+  "name": "com.vendor.gif-capture-recorder",
+  "version": "1.0.0",
+  "displayName": "Gif Capture Recorder",
+  "description": "Record the unity game in GIFs and allow replay or share it",
+  "unity": "2019.4",
+  "keywords": [
+    "vendor"
+  ],
+  "author": {
+    "name": "Vendor",
+    "email": "support@getsocial.im",
+    "url": "https://www.getsocial.im"
+  },
+  "contributors" : [
+	  {
+		"name": "UnrealMitch",
+		"email": "unrealmitch@gmail.com"
+	  }
+  ],
+  "hideInEditor": false,
+  "dependencies": {
+  },
+  "samples": [
+    {
+        "displayName": "Samples",
+        "description": "Samples of this package",
+        "path": "Samples~"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getsocial-im/getsocial-capture"
+  },
+  "publishConfig": {
+    "registry":"https://npm.office.xoia.es/"
+  }
+}

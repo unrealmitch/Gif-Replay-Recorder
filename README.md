@@ -1,15 +1,19 @@
 # Introduction
 
+<b>Edited version by UnrealMitch</b></br>
+This frok from https://github.com/getsocial-im/getsocial-capture it's a simplified version that contains only the functionality to record GIFs and play them.
+<br>Also include some minor modifications in order to work as a package.
+
 <b>Now with scriptable render pipeline support!</b></br>
 The project goal is to let Unity developers record GIFs of gameplay of their game for easy sharing between friends.
 After adding asset to your project, you'll have access to all the source codes, feel free to improve it.
 If you wonder how to use recorded content, check out our SDK at [https://getsocial.im](https://getsocial.im).
 
-![Sample](getsocial-gif-capture-library.gif)
+![Sample](.docs/getsocial-gif-capture-library.gif)
 
 # Integration guide
 
-## Setup
+## Setup (ToDo: Adapt Documentation)
 
 1. Copy `Assets/GetSocialCapture` folder to your project
 1. Add `GetSocialCapture` script to any of your Game components.
@@ -105,7 +109,7 @@ void LevelFinished()
 
 You configure the recording using the following parameters:
 
-![Parameters](capture_parameters.png)
+![Parameters](.docs/capture_parameters.png)
 
 - `captureFrameRate` - Number of captured frames per second.
 - `captureMode` - Capture mode, can be `Continuous` or `Manual`.
@@ -130,7 +134,7 @@ playback = 30
 length = 1.5 sec
 ```
 
-![Quick](example-quick.gif)
+![Quick](.docs/example-quick.gif)
 
 
 #### Example - Slow
@@ -142,7 +146,7 @@ playback = 10
 length = 5 sec
 ```
 
-![Slow](example-slow.gif)
+![Slow](.docs/example-slow.gif)
 
 ## Preview
 
@@ -172,13 +176,13 @@ void ActionFinished()
 
 You can also customize playback:
 
-![Parameters](preview_parameters.png)
+![Parameters](.docs/preview_parameters.png)
 
 - `playbackFrameRate` - Number of displayed frames per second.
 - `loopPlayback` - Preview loops or played only once.
 
 The size and position of preview window can be changed in the Editor:
 
-![Preview](preview_size.png)
+![Preview](.docs/preview_size.png)
 
 
