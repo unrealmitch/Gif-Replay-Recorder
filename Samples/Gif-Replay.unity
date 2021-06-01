@@ -190,7 +190,7 @@ Canvas:
   serializedVersion: 3
   m_RenderMode: 1
   m_Camera: {fileID: 1040336140}
-  m_PlaneDistance: 100
+  m_PlaneDistance: 1
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -1511,6 +1511,7 @@ MonoBehaviour:
   capture: {fileID: 1320305655}
   capturePreview: {fileID: 1822714288}
   durationReplay: 5
+  resizeRatioFrame: 0.5
   onStartRecord:
     m_PersistentCalls:
       m_Calls: []
@@ -1636,7 +1637,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Record Again (Manual)
+  m_Text: Save Gif to File
 --- !u!222 &1330148847
 CanvasRenderer:
   m_ObjectHideFlags: 0

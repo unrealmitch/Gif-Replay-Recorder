@@ -79,13 +79,15 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Gif
             // pass all frames to encoder to build a palette out of a subset of them
             _encoder.BuildPalette(ref _capturedFrames);
 
-            for (int i = 0; i < _capturedFrames.Count(); i++)
+			int frameCount = _capturedFrames.Count();
+
+            for (int i = 0; i < frameCount; i++)
             {
                 _encoder.AddFrame(_capturedFrames.ElementAt(i));
-
             }
+
             _encoder.Finish();
-            Debug.Log("Gif generation finished, took " + (DateTime.Now - startTimestamp).Milliseconds + " msec");
+            Debug.Log($"Gif [{frameCount} frames - {((float)frameCount/_playbackFrameRate).ToString("F2")}s] generation finished, took " + (DateTime.Now - startTimestamp).TotalSeconds.ToString("F3") + "s");
 
             _onFileSaved?.Invoke();
         }

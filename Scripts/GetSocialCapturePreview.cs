@@ -21,12 +21,14 @@ namespace GetSocialSdk.Capture.Scripts
         /// </summary>
         public bool loopPlayback = true;
 
+        public RawImage _rawImage;
+
         #endregion
 
         #region Private fields
 
         private List<Texture2D> _framesToPlay;
-        private RawImage _rawImage;
+
         private bool _play;
         private float _playbackStartTime;
         private bool _previewInitialized;
@@ -59,6 +61,17 @@ namespace GetSocialSdk.Capture.Scripts
             _play = false;
         }
 
+        /// <summary>
+        /// Stops playback and clear frames to reduce memory consumption
+        /// </summary>
+        public void StopAndClearFrames()
+        {
+            Stop();
+            if(_rawImage)
+                _rawImage.texture = null;
+            ClearFrames();
+        }
+
         #endregion
 
         #region Private methods
@@ -67,7 +80,7 @@ namespace GetSocialSdk.Capture.Scripts
         {
             ClearFrames();
 
-            if(_framesToPlay == null)
+            if (_framesToPlay == null)
                 _framesToPlay = new List<Texture2D>();
 
             for (var i = 0; i < StoreWorker.Instance.StoredFrames.Count(); i++)
@@ -76,7 +89,6 @@ namespace GetSocialSdk.Capture.Scripts
                 var texture2D = new Texture2D(frame.Width, frame.Height);
                 texture2D.SetPixels32(frame.Data);
                 texture2D.Apply();
-                texture2D.name = "GifFrame-" + i;
                 _framesToPlay.Add(texture2D);
             }
 
@@ -94,7 +106,9 @@ namespace GetSocialSdk.Capture.Scripts
 
         private void Awake()
         {
-            _rawImage = GetComponent<RawImage>();
+            if (_rawImage == null)
+                _rawImage = GetComponent<RawImage>();
+
             _framesToPlay = new List<Texture2D>();
             _play = false;
         }
@@ -109,9 +123,9 @@ namespace GetSocialSdk.Capture.Scripts
         {
             if (_framesToPlay != null && _framesToPlay.Count > 0)
             {
-                foreach (var frame in _framesToPlay)
+                foreach (Texture2D frame in _framesToPlay)
                 {
-                    if(frame != null)
+                    if (frame != null)
                         Destroy(frame);
                 }
 

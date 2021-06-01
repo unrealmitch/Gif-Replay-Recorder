@@ -56,7 +56,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 
 		private Camera _camera;
 
-		public static double RESIZE_RATIO = 0.5;
+		public static double resize_ratio = 0.5;
 		
 		#endregion
 
@@ -154,7 +154,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 		
 		private IEnumerator StoreCaptureFrame(RenderTexture renderTexture)
 		{
-			StoreWorker.Instance.StoreFrame(renderTexture, RESIZE_RATIO);
+			StoreWorker.Instance.StoreFrame(renderTexture, resize_ratio);
 			yield return null;
 			RenderTexture.ReleaseTemporary(renderTexture);
 		}

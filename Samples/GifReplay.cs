@@ -9,6 +9,8 @@ public class GifReplay : MonoBehaviour
 
     public float durationReplay = 5f;
 
+    [Range(0.1f,1)] public float resizeRatioFrame = .5f;
+
     public UnityEvent onStartRecord, onStopRecord, onSaveRecord;
 
     // Start is called before the first frame update
@@ -58,6 +60,8 @@ public class GifReplay : MonoBehaviour
 
     private void StartRecord()
     {
+        GetSocialSdk.Capture.Scripts.Internal.Recorder.Recorder.resize_ratio = resizeRatioFrame;
+        capturePreview.StopAndClearFrames();
         capture.StartCapture();
         onStartRecord?.Invoke();
     }

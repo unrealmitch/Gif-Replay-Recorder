@@ -73,6 +73,8 @@ namespace GetSocialSdk.Capture.Scripts
 
         public bool isSaving {get; protected set;} = false;
 
+        private static int totalRecords = 0;
+
         #endregion
 
         #region Public methods
@@ -201,8 +203,8 @@ namespace GetSocialSdk.Capture.Scripts
 
         private void InitSession()
         {
-            _captureId = Guid.NewGuid().ToString();
-            var fileName = string.Format("result-{0}.gif", _captureId);
+            _captureId = DateTimeNow + "_" + totalRecords++;
+            var fileName = string.Format("GifRecorder_{0}.gif", _captureId);
             _resultFilePath = GetResultDirectory() + Path.DirectorySeparatorChar + fileName;
             StoreWorker.Instance.Start(ThreadPriority.BelowNormal, maxCapturedFrames);
         }
@@ -218,6 +220,8 @@ namespace GetSocialSdk.Capture.Scripts
                 File.Delete(_resultFilePath);
             }
         }
+
+        private string DateTimeNow => DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss");
 
         #endregion
 
