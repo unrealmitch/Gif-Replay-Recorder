@@ -71,24 +71,28 @@ namespace GetSocialSdk.Capture.Scripts
 
         private const string GeneratedContentFolderName = "gifresult";
 
+        public bool isSaving {get; protected set;} = false;
+
         #endregion
 
         #region Public methods
 
         public void StartCapture()
         {
-            //TODO: CAUTION, when script is being saving in file, and start again to record, can cause problems! (Delayed start?)
-            if (_captureId != null)
-            {
-                CleanUp();
+            if(isSaving){
+                throw new Exception("[GifRecorder] Actually saving last gif. Impossible start still finish.");
             }
+            
             InitSession();
             _recorder.CurrentState = Recorder.RecordingState.Recording;
         }
 
-        public void StopCapture()
-        {
+        public bool StopCapture()
+        {   if(_recorder.CurrentState == Recorder.RecordingState.OnHold)
+                return false;
+
             _recorder.CurrentState = Recorder.RecordingState.OnHold;
+            return false;
         }
 
         public void ResumeCapture()
@@ -114,6 +118,7 @@ namespace GetSocialSdk.Capture.Scripts
 
         public void GenerateCapture(Action<byte[]> result)
         {
+            isSaving = true;
             _recorder.CurrentState = Recorder.RecordingState.OnHold;
             if (StoreWorker.Instance.StoredFrames.Count() > 0)
             {
@@ -121,12 +126,12 @@ namespace GetSocialSdk.Capture.Scripts
                      _resultFilePath,
                     () =>
                     {
+                        isSaving = false;
                         Debug.Log("Result: " + _resultFilePath);
 
                         MainThreadExecutor.Queue(() =>
                         {
                             result(File.ReadAllBytes(_resultFilePath));
-
                         });
                     });
                 generator.Start();
@@ -204,6 +209,10 @@ namespace GetSocialSdk.Capture.Scripts
 
         private void CleanUp()
         {
+            if(isSaving){
+                throw new Exception("[GifRecorder] Actually saving last gif. Impossible CleanUp still finish.");
+            }
+
             if (File.Exists(_resultFilePath))
             {
                 File.Delete(_resultFilePath);

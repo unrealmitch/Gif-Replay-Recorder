@@ -67,12 +67,16 @@ namespace GetSocialSdk.Capture.Scripts
         {
             ClearFrames();
 
+            if(_framesToPlay == null)
+                _framesToPlay = new List<Texture2D>();
+
             for (var i = 0; i < StoreWorker.Instance.StoredFrames.Count(); i++)
             {
                 var frame = StoreWorker.Instance.StoredFrames.ElementAt(i);
                 var texture2D = new Texture2D(frame.Width, frame.Height);
                 texture2D.SetPixels32(frame.Data);
                 texture2D.Apply();
+                texture2D.name = "GifFrame-" + i;
                 _framesToPlay.Add(texture2D);
             }
 
@@ -105,6 +109,12 @@ namespace GetSocialSdk.Capture.Scripts
         {
             if (_framesToPlay != null && _framesToPlay.Count > 0)
             {
+                foreach (var frame in _framesToPlay)
+                {
+                    if(frame != null)
+                        Destroy(frame);
+                }
+
                 var listId = GC.GetGeneration(_framesToPlay);
                 _framesToPlay.Clear();
                 GC.Collect(listId, GCCollectionMode.Forced);

@@ -1,5 +1,6 @@
 using GetSocialSdk.Capture.Scripts;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GifReplay : MonoBehaviour
 {
@@ -8,42 +9,56 @@ public class GifReplay : MonoBehaviour
 
     public float durationReplay = 5f;
 
+    public UnityEvent onStartRecord, onStopRecord, onSaveRecord;
+
     // Start is called before the first frame update
     void Start()
     {
-        capture.maxCapturedFrames = (int) (capture.captureFrameRate * durationReplay);
+        capture.maxCapturedFrames = (int)(capture.captureFrameRate * durationReplay);
         StartContinuous();
     }
 
-    [ContextMenu("Stop&Replay")]
-    public void StopAndReplay()
+    public void StartContinuous()
     {
-        StopAndSave();
-        capturePreview.Play();
-    }
-
-    public void StopAndSave()
-    {
-        capture.StopCapture();
-        // generate gif
-        capture.GenerateCapture(result =>
-        {
-            Debug.Log("Generated gif of: " + (result.Length/1024) + "kB");
-        });
-    }
-
-    public void StartContinuous(){
         capture.captureMode = GetSocialCapture.GetSocialCaptureMode.Continuous;
-        capture.StartCapture();
+        StartRecord();
     }
     public void StartManual()
     {
         capture.captureMode = GetSocialCapture.GetSocialCaptureMode.Manual;
-        capture.StartCapture();
+        StartRecord();
     }
 
     public void RecordFrame()
     {
         capture.CaptureFrame();
+    }
+
+    public void StopAndReplay()
+    {
+        StopRecord();
+        capturePreview.Play();
+    }
+
+    public void StopRecord()
+    {
+        capture.StopCapture();
+        onStopRecord?.Invoke();
+    }
+
+    public void StopAndSave()
+    {
+        StopRecord();
+        capture.GenerateCapture(result =>
+        {
+            Debug.Log("Generated gif of: " + (result.Length / 1024) + "kB");
+            onSaveRecord?.Invoke();
+        });
+    }
+
+    private void StartRecord()
+    {
+        capture.StartCapture();
+        onStartRecord?.Invoke();
     }
 }
