@@ -60,44 +60,49 @@ namespace GetSocialSdk.Capture.Scripts
         /// </summary>
         public Camera capturedCamera;
 
+        public bool isSaving { get; protected set; } = false;
+        public bool isRecorderer { get; protected set; } = false;
+        public bool isSaved { get; protected set; } = false;
+        public string resultFilePath {get; protected set;}
+
         #endregion
 
         #region Private variables
 
-        private string _captureId;
-        private string _resultFilePath;
-        private float _elapsedTime;
-        private Recorder _recorder;
-
-        private const string GeneratedContentFolderName = "gifresult";
-
-        public bool isSaving {get; protected set;} = false;
-
-        private static int totalRecords = 0;
+        protected string _captureId;
+        protected float _elapsedTime;
+        protected Recorder _recorder;
+        protected const string GeneratedContentFolderName = "gifresult";
+        protected static int totalRecords = 0;
 
         #endregion
 
         #region Public methods
 
-        public void StartCapture()
+        public virtual void StartCapture()
         {
-            if(isSaving){
+            if (isSaving)
+            {
                 throw new Exception("[GifRecorder] Actually saving last gif. Impossible start still finish.");
             }
-            
+
             InitSession();
+            isRecorderer = false;
+            isSaved = false;
             _recorder.CurrentState = Recorder.RecordingState.Recording;
         }
 
-        public bool StopCapture()
-        {   if(_recorder.CurrentState == Recorder.RecordingState.OnHold)
+        public virtual bool StopCapture()
+        {
+            if (_recorder.CurrentState == Recorder.RecordingState.OnHold)
                 return false;
 
+            isRecorderer = true;
             _recorder.CurrentState = Recorder.RecordingState.OnHold;
-            return false;
+            return true;
         }
 
-        public void ResumeCapture()
+        public virtual void ResumeCapture()
         {
             if (_captureId == null)
             {
@@ -109,7 +114,7 @@ namespace GetSocialSdk.Capture.Scripts
             }
         }
 
-        public void CaptureFrame()
+        public virtual void CaptureFrame()
         {
             if (_captureId == null)
             {
@@ -118,22 +123,22 @@ namespace GetSocialSdk.Capture.Scripts
             _recorder.CurrentState = Recorder.RecordingState.RecordNow;
         }
 
-        public void GenerateCapture(Action<byte[]> result)
+        public virtual void GenerateCapture(Action<byte[]> result)
         {
             isSaving = true;
             _recorder.CurrentState = Recorder.RecordingState.OnHold;
             if (StoreWorker.Instance.StoredFrames.Count() > 0)
             {
                 var generator = new GeneratorWorker(loopPlayback, playbackFrameRate, ThreadPriority.BelowNormal, StoreWorker.Instance.StoredFrames,
-                     _resultFilePath,
+                     resultFilePath,
                     () =>
                     {
-                        isSaving = false;
-                        Debug.Log("Result: " + _resultFilePath);
-
+                        Debug.Log("Result: " + resultFilePath);
                         MainThreadExecutor.Queue(() =>
                         {
-                            result(File.ReadAllBytes(_resultFilePath));
+                            isSaving = false;
+                            isSaved = true;
+                            result(File.ReadAllBytes(resultFilePath));
                         });
                     });
                 generator.Start();
@@ -145,11 +150,30 @@ namespace GetSocialSdk.Capture.Scripts
             }
         }
 
+        public virtual bool IsVideoRecordererCheckDeep()
+        {
+            return StoreWorker.Instance != null && StoreWorker.Instance.StoredFrames != null && StoreWorker.Instance.StoredFrames.Count() > 0;
+        }
+
+        public virtual void CleanAll(bool alsoCleanFiles){
+            if(isSaving)
+               throw new Exception("[GifReplay] Clean all while gif is saving is not possible!");
+
+            StopCapture();
+            isRecorderer = false;
+            isSaved = false;
+            StoreWorker.Instance.Clear();
+
+            if(alsoCleanFiles){
+                CleanUp();
+            }
+        }
+
         #endregion
 
         #region Unity methods
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (capturedCamera == null)
             {
@@ -175,7 +199,7 @@ namespace GetSocialSdk.Capture.Scripts
             _recorder.CaptureFrameRate = captureFrameRate;
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             StoreWorker.Instance.Clear();
         }
@@ -184,7 +208,7 @@ namespace GetSocialSdk.Capture.Scripts
 
         #region Private methods
 
-        private static string GetResultDirectory()
+        protected static string GetResultDirectory()
         {
             string resultDirPath;
 #if UNITY_EDITOR
@@ -201,27 +225,30 @@ namespace GetSocialSdk.Capture.Scripts
             return resultDirPath;
         }
 
-        private void InitSession()
+        protected virtual void InitSession()
         {
             _captureId = DateTimeNow + "_" + totalRecords++;
             var fileName = string.Format("GifRecorder_{0}.gif", _captureId);
-            _resultFilePath = GetResultDirectory() + Path.DirectorySeparatorChar + fileName;
+            resultFilePath = GetResultDirectory() + Path.DirectorySeparatorChar + fileName;
             StoreWorker.Instance.Start(ThreadPriority.BelowNormal, maxCapturedFrames);
         }
 
-        private void CleanUp()
+        protected virtual void CleanUp()
         {
-            if(isSaving){
+            if (isSaving)
+            {
                 throw new Exception("[GifRecorder] Actually saving last gif. Impossible CleanUp still finish.");
             }
 
-            if (File.Exists(_resultFilePath))
+            if (File.Exists(resultFilePath))
             {
-                File.Delete(_resultFilePath);
+                File.Delete(resultFilePath);
             }
+
+            resultFilePath = "";
         }
 
-        private string DateTimeNow => DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss");
+        protected virtual string DateTimeNow => DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss");
 
         #endregion
 

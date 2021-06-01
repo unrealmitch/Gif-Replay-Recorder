@@ -27,11 +27,11 @@ namespace GetSocialSdk.Capture.Scripts
 
         #region Private fields
 
-        private List<Texture2D> _framesToPlay;
+        protected List<Texture2D> _framesToPlay;
 
-        private bool _play;
-        private float _playbackStartTime;
-        private bool _previewInitialized;
+        protected bool _play;
+        protected float _playbackStartTime;
+        protected bool _previewInitialized;
 
         #endregion
 
@@ -40,7 +40,7 @@ namespace GetSocialSdk.Capture.Scripts
         /// <summary>
         /// Starts preview playback.
         /// </summary>
-        public void Play(bool forceReinit = true)
+        public virtual void Play(bool forceReinit = true)
         {
             if (!_previewInitialized || forceReinit)
             {
@@ -56,7 +56,7 @@ namespace GetSocialSdk.Capture.Scripts
         /// <summary>
         /// Stops playback.
         /// </summary>
-        public void Stop()
+        public virtual void Stop()
         {
             _play = false;
         }
@@ -64,19 +64,20 @@ namespace GetSocialSdk.Capture.Scripts
         /// <summary>
         /// Stops playback and clear frames to reduce memory consumption
         /// </summary>
-        public void StopAndClearFrames()
+        public virtual void StopAndClearFrames()
         {
             Stop();
             if(_rawImage)
                 _rawImage.texture = null;
             ClearFrames();
+            _previewInitialized = false;
         }
 
         #endregion
 
         #region Private methods
 
-        private void Init()
+        protected virtual void Init()
         {
             ClearFrames();
 
@@ -104,7 +105,7 @@ namespace GetSocialSdk.Capture.Scripts
 
         #region Unity methods
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (_rawImage == null)
                 _rawImage = GetComponent<RawImage>();
@@ -113,13 +114,13 @@ namespace GetSocialSdk.Capture.Scripts
             _play = false;
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             ClearFrames();
             _framesToPlay = null;
         }
 
-        private void ClearFrames()
+        protected virtual void ClearFrames()
         {
             if (_framesToPlay != null && _framesToPlay.Count > 0)
             {
@@ -136,12 +137,12 @@ namespace GetSocialSdk.Capture.Scripts
             }
         }
 
-        private void Start()
+        protected virtual void Start()
         {
             Play(false);
         }
 
-        private void Update()
+        protected virtual void Update()
         {
             if (!_play) return;
             if (_framesToPlay == null || _framesToPlay.Count == 0) return;
