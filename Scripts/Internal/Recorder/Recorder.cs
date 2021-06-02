@@ -93,7 +93,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 							
 				_elapsedTime = 0;
 					
-				StartCoroutine("StoreCaptureFrame", targetRenderTexture);
+				StartCoroutine(StoreCaptureFrame(targetRenderTexture));
 
 				if (CurrentState == RecordingState.RecordNow)
 				{
@@ -122,7 +122,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 
 				_elapsedTime = 0;
 
-				StartCoroutine("StoreCaptureFrame", targetRenderTexture);
+				StartCoroutine(StoreCaptureFrame(targetRenderTexture));
 
 				if (CurrentState == RecordingState.RecordNow)
 				{

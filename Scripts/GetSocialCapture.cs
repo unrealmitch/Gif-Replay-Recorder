@@ -60,6 +60,12 @@ namespace GetSocialSdk.Capture.Scripts
         /// </summary>
         public Camera capturedCamera;
 
+        /// <summary>
+        /// Resize ratio from original frame to gif frame
+        /// </summary>
+        /// <value>Gif Dimensions = Original Screen Frame Dimension * Value</value>
+        [Range(0.1f, 1)] public float resizeRatioFrame = .5f;
+
         public bool isSaving { get; protected set; } = false;
         public bool isRecorderer { get; protected set; } = false;
         public bool isSaved { get; protected set; } = false;
@@ -230,6 +236,7 @@ namespace GetSocialSdk.Capture.Scripts
             _captureId = DateTimeNow + "_" + totalRecords++;
             var fileName = string.Format("GifRecorder_{0}.gif", _captureId);
             resultFilePath = GetResultDirectory() + Path.DirectorySeparatorChar + fileName;
+            Recorder.resize_ratio = resizeRatioFrame;
             StoreWorker.Instance.Start(ThreadPriority.BelowNormal, maxCapturedFrames);
         }
 
