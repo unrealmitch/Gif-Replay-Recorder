@@ -20,18 +20,18 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
         /// Queue storing captured frames.
         /// </summary>
         public FixedSizedQueue<GifFrame> StoredFrames { get; private set; }
-        
+
         #endregion
 
         #region Internal fields
 
         internal static StoreWorker Instance
         {
-            get { return _instance?? (_instance = new StoreWorker()); }
+            get { return _instance ?? (_instance = new StoreWorker()); }
         }
 
         #endregion
-        
+
         #region Private fields
 
         private Thread _thread;
@@ -60,7 +60,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
             // make sure everything is cleared from previous session
             Clear();
             StoredFrames = new FixedSizedQueue<GifFrame>(maxCapturedFrames);
-            _thread = new Thread(Run) {Priority = priority};
+            _thread = new Thread(Run) { Priority = priority };
             _thread.Start();
         }
 
@@ -69,13 +69,13 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
             var newWidth = Convert.ToInt32(renderTexture.width * resizeRatio);
             var newHeight = Convert.ToInt32(renderTexture.height * resizeRatio);
             renderTexture.filterMode = FilterMode.Bilinear;
-            
+
             var resizedRenderTexture = RenderTexture.GetTemporary(newWidth, newHeight);
             resizedRenderTexture.filterMode = FilterMode.Bilinear;
 
             RenderTexture.active = resizedRenderTexture;
             Graphics.Blit(renderTexture, resizedRenderTexture);
-            
+
             // convert to Texture2D
             var resizedTexture2D =
                 new Texture2D(newWidth, newHeight, TextureFormat.RGBA32, false)
@@ -87,7 +87,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
                 };
 
             resizedTexture2D.ReadPixels(new Rect(0, 0, newWidth, newHeight), 0, 0);
-            resizedTexture2D.Apply();            
+            resizedTexture2D.Apply();
             RenderTexture.active = null;
 
             var frame = new GifFrame
@@ -99,7 +99,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 
             resizedRenderTexture.Release();
             Object.Destroy(resizedTexture2D);
-            
+
             StoredFrames.Enqueue(frame);
         }
 
@@ -109,7 +109,7 @@ namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 
         private static void Run()
         {
-            
+
         }
 
         #endregion

@@ -31,135 +31,135 @@ using UnityEngine.Rendering;
 
 namespace GetSocialSdk.Capture.Scripts.Internal.Recorder
 {
-	[RequireComponent(typeof(Camera)), DisallowMultipleComponent]
-	public sealed class Recorder : MonoBehaviour
-	{
-		#region Internal fields
+    [RequireComponent(typeof(Camera)), DisallowMultipleComponent]
+    public sealed class Recorder : MonoBehaviour
+    {
+        #region Internal fields
 
-		internal enum RecordingState
-		{
-			OnHold = 0,
-			Recording = 1,
-			RecordNow = 2
-		}
+        internal enum RecordingState
+        {
+            OnHold = 0,
+            Recording = 1,
+            RecordNow = 2
+        }
 
-		internal RecordingState CurrentState;
-		internal int CaptureFrameRate;
+        internal RecordingState CurrentState;
+        internal int CaptureFrameRate;
 
-		#endregion
+        #endregion
 
-		#region Private fields
+        #region Private fields
 
-		private float _elapsedTime;
-		
-		private RenderTexture _recycledRenderTexture;
+        private float _elapsedTime;
 
-		private Camera _camera;
+        private RenderTexture _recycledRenderTexture;
 
-		public static double resize_ratio = 0.5;
-		
-		#endregion
+        private Camera _camera;
 
-		#region Unity methods
+        public static double resize_ratio = 0.5;
 
-		private void Awake()
-		{
-			_camera = GetComponent<Camera>();
-			CurrentState = RecordingState.OnHold;
+        #endregion
+
+        #region Unity methods
+
+        private void Awake()
+        {
+            _camera = GetComponent<Camera>();
+            CurrentState = RecordingState.OnHold;
 #if UNITY_2019_1_OR_NEWER
-			RenderPipelineManager.beginCameraRendering += OnEndCameraRendering;
-#endif			
-		}
-
-#if UNITY_2019_1_OR_NEWER
-		private void OnEndCameraRendering(ScriptableRenderContext context, Camera cameraEndRendering)
-		{
-			if (CurrentState != RecordingState.Recording &&
-			    CurrentState != RecordingState.RecordNow)
-			{
-				return;
-			}
-			_elapsedTime += Time.unscaledDeltaTime;
-
-			if (_elapsedTime >= 1.0f / CaptureFrameRate)
-			{
-				var targetRenderTexture = GetTemporaryRenderTexture();
-
-				var commandBuffer = new CommandBuffer();
-				commandBuffer.Blit(BuiltinRenderTextureType.CurrentActive, targetRenderTexture);
-				context.ExecuteCommandBuffer(commandBuffer);
-				context.Submit();
-				commandBuffer.Release();
-							
-				_elapsedTime = 0;
-					
-				StartCoroutine(StoreCaptureFrame(targetRenderTexture));
-
-				if (CurrentState == RecordingState.RecordNow)
-				{
-					CurrentState = RecordingState.OnHold;
-				}
-			}
-		}
+            RenderPipelineManager.beginCameraRendering += OnEndCameraRendering;
 #endif
-		
-		private void OnRenderImage(RenderTexture source, RenderTexture destination)
-		{
-			if (CurrentState != RecordingState.Recording &&
-			    CurrentState != RecordingState.RecordNow)
-			{
-				Graphics.Blit(source, destination);
-				return;
-			}
+        }
 
-			_elapsedTime += Time.unscaledDeltaTime;
+#if UNITY_2019_1_OR_NEWER
+        private void OnEndCameraRendering(ScriptableRenderContext context, Camera cameraEndRendering)
+        {
+            if (CurrentState != RecordingState.Recording &&
+                CurrentState != RecordingState.RecordNow)
+            {
+                return;
+            }
+            _elapsedTime += Time.unscaledDeltaTime;
 
-			if (_elapsedTime >= 1.0f / CaptureFrameRate)
-			{
-				var targetRenderTexture = GetTemporaryRenderTexture();
-				
-				Graphics.Blit(source, targetRenderTexture);
+            if (_elapsedTime >= 1.0f / CaptureFrameRate)
+            {
+                var targetRenderTexture = GetTemporaryRenderTexture();
 
-				_elapsedTime = 0;
+                var commandBuffer = new CommandBuffer();
+                commandBuffer.Blit(BuiltinRenderTextureType.CurrentActive, targetRenderTexture);
+                context.ExecuteCommandBuffer(commandBuffer);
+                context.Submit();
+                commandBuffer.Release();
 
-				StartCoroutine(StoreCaptureFrame(targetRenderTexture));
+                _elapsedTime = 0;
 
-				if (CurrentState == RecordingState.RecordNow)
-				{
-					CurrentState = RecordingState.OnHold;
-				}
-			}
+                StartCoroutine(StoreCaptureFrame(targetRenderTexture));
 
-			Graphics.Blit(source, destination);
-		}
+                if (CurrentState == RecordingState.RecordNow)
+                {
+                    CurrentState = RecordingState.OnHold;
+                }
+            }
+        }
+#endif
 
-		#endregion
+        private void OnRenderImage(RenderTexture source, RenderTexture destination)
+        {
+            if (CurrentState != RecordingState.Recording &&
+                CurrentState != RecordingState.RecordNow)
+            {
+                Graphics.Blit(source, destination);
+                return;
+            }
 
-		#region Private methods
+            _elapsedTime += Time.unscaledDeltaTime;
 
-		private RenderTexture GetTemporaryRenderTexture()
-		{
-			var rt = _recycledRenderTexture;
-			_recycledRenderTexture = null;
+            if (_elapsedTime >= 1.0f / CaptureFrameRate)
+            {
+                var targetRenderTexture = GetTemporaryRenderTexture();
 
-			if (rt != null) return rt;
-			
-			rt = RenderTexture.GetTemporary(_camera.pixelWidth, _camera.pixelHeight, 0, RenderTextureFormat.ARGB32);
-			rt.wrapMode = TextureWrapMode.Clamp;
-			rt.filterMode = FilterMode.Bilinear;
-			rt.anisoLevel = 0;
+                Graphics.Blit(source, targetRenderTexture);
 
-			return rt;
-		}
-		
-		private IEnumerator StoreCaptureFrame(RenderTexture renderTexture)
-		{
-			StoreWorker.Instance.StoreFrame(renderTexture, resize_ratio);
-			yield return null;
-			RenderTexture.ReleaseTemporary(renderTexture);
-		}
+                _elapsedTime = 0;
 
-		#endregion
+                StartCoroutine(StoreCaptureFrame(targetRenderTexture));
 
-	}
+                if (CurrentState == RecordingState.RecordNow)
+                {
+                    CurrentState = RecordingState.OnHold;
+                }
+            }
+
+            Graphics.Blit(source, destination);
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private RenderTexture GetTemporaryRenderTexture()
+        {
+            var rt = _recycledRenderTexture;
+            _recycledRenderTexture = null;
+
+            if (rt != null) return rt;
+
+            rt = RenderTexture.GetTemporary(_camera.pixelWidth, _camera.pixelHeight, 0, RenderTextureFormat.ARGB32);
+            rt.wrapMode = TextureWrapMode.Clamp;
+            rt.filterMode = FilterMode.Bilinear;
+            rt.anisoLevel = 0;
+
+            return rt;
+        }
+
+        private IEnumerator StoreCaptureFrame(RenderTexture renderTexture)
+        {
+            StoreWorker.Instance.StoreFrame(renderTexture, resize_ratio);
+            yield return null;
+            RenderTexture.ReleaseTemporary(renderTexture);
+        }
+
+        #endregion
+
+    }
 }

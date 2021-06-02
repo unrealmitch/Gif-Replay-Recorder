@@ -69,7 +69,7 @@ namespace GetSocialSdk.Capture.Scripts
         public bool isSaving { get; protected set; } = false;
         public bool isRecorderer { get; protected set; } = false;
         public bool isSaved { get; protected set; } = false;
-        public string resultFilePath {get; protected set;}
+        public string resultFilePath { get; protected set; }
 
         #endregion
 
@@ -161,16 +161,18 @@ namespace GetSocialSdk.Capture.Scripts
             return StoreWorker.Instance != null && StoreWorker.Instance.StoredFrames != null && StoreWorker.Instance.StoredFrames.Count() > 0;
         }
 
-        public virtual void CleanAll(bool alsoCleanFiles){
-            if(isSaving)
-               throw new Exception("[GifReplay] Clean all while gif is saving is not possible!");
+        public virtual void CleanAll(bool alsoCleanFiles)
+        {
+            if (isSaving)
+                throw new Exception("[GifReplay] Clean all while gif is saving is not possible!");
 
             StopCapture();
             isRecorderer = false;
             isSaved = false;
             StoreWorker.Instance.Clear();
 
-            if(alsoCleanFiles){
+            if (alsoCleanFiles)
+            {
                 CleanUp();
             }
         }
