@@ -66,10 +66,17 @@ namespace GetSocialSdk.Capture.Scripts
         /// <value>Gif Dimensions = Original Screen Frame Dimension * Value</value>
         [Range(0.1f, 1)] public float resizeRatioFrame = .5f;
 
+        /// <summary>
+        /// Auto init (set camera _recorder at awake)
+        /// </summary>
+        public bool autoInit = true;
+
+        public bool initialized { get; protected set; } = false;
         public bool isSaving { get; protected set; } = false;
         public bool isRecorderer { get; protected set; } = false;
         public bool isSaved { get; protected set; } = false;
         public string resultFilePath { get; protected set; }
+        public bool isRecording => _recorder != null && _recorder.CurrentState != Recorder.RecordingState.OnHold;
 
         #endregion
 
@@ -87,6 +94,9 @@ namespace GetSocialSdk.Capture.Scripts
 
         public virtual void StartCapture()
         {
+            if (!initialized)
+                Init();
+
             if (isSaving)
             {
                 throw new Exception("[GifRecorder] Actually saving last gif. Impossible start still finish.");
@@ -100,7 +110,7 @@ namespace GetSocialSdk.Capture.Scripts
 
         public virtual bool StopCapture()
         {
-            if (_recorder.CurrentState == Recorder.RecordingState.OnHold)
+            if (_recorder == null || _recorder.CurrentState == Recorder.RecordingState.OnHold)
                 return false;
 
             isRecorderer = true;
@@ -110,9 +120,9 @@ namespace GetSocialSdk.Capture.Scripts
 
         public virtual void ResumeCapture()
         {
-            if (_captureId == null)
+            if (_captureId == null || _recorder == null)
             {
-                Debug.Log("There is no previous capture session to continue");
+                Debug.LogWarning("There is no previous capture session to continue or recorder is null");
             }
             else
             {
@@ -177,34 +187,60 @@ namespace GetSocialSdk.Capture.Scripts
             }
         }
 
+        public virtual void ChangeCamera(Camera camera = null)
+        {
+            if (!isRecording)
+            {
+                if (_recorder != null)
+                    CleanAll(false);
+
+                if (camera == null)
+                {
+                    capturedCamera = Camera.main;
+                }
+                else
+                {
+                    capturedCamera = camera;
+                }
+
+                if (capturedCamera == null)
+                {
+                    Debug.LogError("Camera is not set");
+                    return;
+                }
+
+                _recorder = capturedCamera.GetComponent<Recorder>();
+
+                if (_recorder == null)
+                {
+                    _recorder = capturedCamera.gameObject.AddComponent<Recorder>();
+                }
+
+                _recorder.CaptureFrameRate = captureFrameRate;
+            }
+            else
+            {
+                Debug.LogError("Cant change camera while it's recordering");
+            }
+        }
+
         #endregion
 
         #region Unity methods
 
+        public void Init()
+        {
+            if (!initialized)
+            {
+                ChangeCamera(capturedCamera);
+                initialized = true;
+            }
+        }
+
         protected virtual void Awake()
         {
-            if (capturedCamera == null)
-            {
-                capturedCamera = GetComponent<Camera>();
-
-                if (capturedCamera == null)
-                    capturedCamera = Camera.main;
-            }
-
-            if (capturedCamera == null)
-            {
-                Debug.LogError("Camera is not set");
-                return;
-            }
-
-            _recorder = capturedCamera.GetComponent<Recorder>();
-
-            if (_recorder == null)
-            {
-                _recorder = capturedCamera.gameObject.AddComponent<Recorder>();
-            }
-
-            _recorder.CaptureFrameRate = captureFrameRate;
+            if (autoInit)
+                Init();
         }
 
         protected virtual void OnDestroy()
